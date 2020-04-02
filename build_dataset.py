@@ -4,11 +4,13 @@ from tqdm import tqdm
 import json
 import urllib.request
 
-# internal utilities
-import config
 from utils import tokenizer, clean_text, word_tokenize, sent_tokenize, convert_idx
 
+MAX_SENTENCE_LENGTH = 100
+MAX_QUESTION_LENGTH = 100
+
 class SquadPreprocessor:
+
     def __init__(self, save_dir):
         self.save_dir = save_dir
 
@@ -70,6 +72,9 @@ class SquadPreprocessor:
                             print("Sentence cannot be found")
                             raise Exception()
 
+                        if len(sentence_tokens) >= MAX_SENTENCE_LENGTH or len(question) >= MAX_QUESTION_LENGTH
+
+                        
                         sentence_file.write(" ".join([token + u"￨" + "1" if idx in answer_sentence_span else token + u"￨" + "0" for idx, token in enumerate(sentence_tokens)]) + "\n")
                         question_file.write(" ".join([token for token in question_tokens]) + "\n")
 
