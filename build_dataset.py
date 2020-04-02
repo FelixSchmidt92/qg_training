@@ -2,60 +2,23 @@
 import os
 import tqdm
 import json
-import zipfile
-import tarfile
 import urllib.request
 
 # internal utilities
 import config
 from utils import tokenizer, clean_text, word_tokenize, sent_tokenize, convert_idx
 
-# URL to download SQuAD dataset 2.0
-squad_url = "https://rajpurkar.github.io/SQuAD-explorer/dataset"
-
-
-def maybe_download_squad(url, filename, out_dir):
-    # path for local file.
-    save_path = os.path.join(out_dir, filename)
-
-    # check if the file already exists
-    if not os.path.exists(save_path):
-        # check if the output directory exists, otherwise create it.
-        if not os.path.exists(out_dir):
-            os.makedirs(out_dir)
-
-        print("Downloading", filename, "...")
-
-        # download the dataset
-        url = os.path.join(url, filename)
-        file_path, _ = urllib.request.urlretrieve(url=url, filename=save_path)
-
-    print("File downloaded successfully!")
-
-    if filename.endswith(".zip"):
-        # unpack the zip-file.
-        print("Extracting ZIP file...")
-        zipfile.ZipFile(file=filename, mode="r").extractall(out_dir)
-        print("File extracted successfully!")
-    elif filename.endswith((".tar.gz", ".tgz")):
-        # unpack the tar-ball.
-        print("Extracting TAR file...")
-        tarfile.open(name=filename, mode="r:gz").extractall(out_dir)
-        print("File extracted successfully!")
-
-
 class SquadPreprocessor:
     def __init__(self, data_dir, train_filename, dev_filename, tokenizer):
-        self.data_dir = data_dir
-        self.train_filename = train_filename
-        self.dev_filename = dev_filename
-        self.data = None
-        self.tokenizer = tokenizer
 
     def load_data(self, filename="train-v2.0.json"):
         filepath = os.path.join(self.data_dir, filename)
         with open(filepath) as f:
-            self.data = json.load(f)
+            return json.load(f)
+
+    def split_sentence_question(self,filename,data_type): 
+        data = self.load_data(filename)
+
 
     def split_data(self, filename):
         self.load_data(filename)
@@ -134,16 +97,17 @@ class SquadPreprocessor:
                             question_file.write(" ".join([token for token in question_tokens]) + "\n")
                             answer_file.write(" ".join([token for token in answer_tokens]) + "\n")
 
-    def preprocess(self):
+    def preprocess(self,train_path, dev_path,test_path,save_dir):
         self.split_data(self.train_filename)
         self.split_data(self.dev_filename)
 
 
 if __name__ == "__main__":
-    squad_train_filename = "train-v2.0.json"
-    squad_dev_filename = "dev-v2.0.json"
-    maybe_download_squad(squad_url, squad_train_filename, config.squad_data_dir)
-    maybe_download_squad(squad_url, squad_dev_filename, config.squad_data_dir)
+    squad_train_filename = "train.json"
+    squad_dev_filename = "dev.json"
+    squad_test_filename = "test.json"
+    save_dir = "data/squad/"
 
-    p2 = SquadPreprocessor(config.squad_data_dir, squad_train_filename, squad_dev_filename, tokenizer)
-    p2.preprocess()
+    preprocessor = SquadPreprocessor()
+    preprocessor.preprocess(train_path=squad_train_filename, test_path=squad_test_filename,
+      dev_path=squad_dev_filename,save_dir= save_dir)
