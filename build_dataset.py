@@ -85,9 +85,9 @@ class SquadPreprocessor:
                         question_file.write(" ".join([token for token in question_tokens]) + "\n")
 
     def preprocess(self,train_path, dev_path,test_path):
-
-        #self.split_data(self.train_filename)
-        #self.split_data(self.dev_filename)
+        self.split_data(train_path,'train')
+        self.split_data(dev_path,'dev')
+        self.split_data(test_path,'test')
 
 
 if __name__ == "__main__":
