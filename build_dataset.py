@@ -14,8 +14,9 @@ MIN_QUESTION_LENGHT = 5
 
 class SquadPreprocessor:
 
-    def __init__(self, save_dir):
+    def __init__(self, save_dir, data_dir):
         self.save_dir = save_dir
+        self.data_dir = data_dir
 
     def load_data(self, file_name):
         filepath = os.path.join(self.data_dir, file_name)
@@ -24,10 +25,10 @@ class SquadPreprocessor:
 
     def split_sentence_question(self,filename,data_type): 
         data = self.load_data(filename)
-        with open(os.path.join(self.save_dir, data_type + '.sentence'), 'w', encoding="utf-8") as sentence_file,\
-             open(os.path.join(self.save_dir, data_type + '.question'), 'w', encoding="utf-8") as question_file:
+        with open(os.path.join(self.save_dir + data_type + '.sentence'), 'w', encoding="utf-8") as sentence_file,\
+             open(os.path.join(self.save_dir + data_type + '.question'), 'w', encoding="utf-8") as question_file:
             
-            artilces = data['data']
+            artilces = data
             for article in tqdm(artilces):
                 paragraphs = article['paragraphs']
                 for paragraph in paragraphs:
@@ -44,7 +45,7 @@ class SquadPreprocessor:
                         first_token_sentence.append(num_tokens)
                         num_tokens += len(sentence)
 
-                    question_and_answer_list = paragraph['qa']
+                    question_and_answer_list = paragraph['qas']
                     for question_and_answer in question_and_answer_list:
                         question = question_and_answer['question']
                         question = clean_text(question)
@@ -53,13 +54,13 @@ class SquadPreprocessor:
                         if len(question_tokens) > MAX_QUESTION_LENGTH or len(question_tokens) < MIN_QUESTION_LENGHT:
                             continue
 
-                        if not question_and_answer['answer'] : continue
-                        answer = question_and_answer['answers']['0']
+                        if not question_and_answer['answers'] : continue
+                        answer = question_and_answer['answers'][0]
                         answer_text = answer['text']
                         answer_text = clean_text(answer_text)
-                        answer_tokens = word_tokenize(answer)
+                        answer_tokens = word_tokenize(answer_text)
                         answer_start = answer['answer_start']
-                        answer_stop = answer_start + len(answer)
+                        answer_stop = answer_start + len(answer_text)
 
                         answer_span = []
                         for idx, span in enumerate(spans):
@@ -85,17 +86,18 @@ class SquadPreprocessor:
                         question_file.write(" ".join([token for token in question_tokens]) + "\n")
 
     def preprocess(self,train_path, dev_path,test_path):
-        self.split_data(train_path,'train')
-        self.split_data(dev_path,'dev')
-        self.split_data(test_path,'test')
+        self.split_sentence_question(dev_path,'dev')
+        self.split_sentence_question(test_path,'test')
+        self.split_sentence_question(train_path,'train')
 
 
 if __name__ == "__main__":
     squad_train_filename = "train.json"
     squad_dev_filename = "dev.json"
     squad_test_filename = "test.json"
-    save_dir = "data/squad/preprocessed"
+    save_dir = "data/squad/preporcessed."
+    data_dir = "data/squad/raw"
 
-    preprocessor = SquadPreprocessor(save_dir=save_dir)
+    preprocessor = SquadPreprocessor(save_dir=save_dir,data_dir=data_dir)
     preprocessor.preprocess(train_path=squad_train_filename, test_path=squad_test_filename,
       dev_path=squad_dev_filename)
