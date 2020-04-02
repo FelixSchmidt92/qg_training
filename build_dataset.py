@@ -7,7 +7,10 @@ import urllib.request
 from utils import tokenizer, clean_text, word_tokenize, sent_tokenize, convert_idx
 
 MAX_SENTENCE_LENGTH = 100
-MAX_QUESTION_LENGTH = 100
+MIN_SENTENCE_LENGTH = 5
+
+MAX_QUESTION_LENGTH = 20
+MIN_QUESTION_LENGHT = 5
 
 class SquadPreprocessor:
 
@@ -47,6 +50,9 @@ class SquadPreprocessor:
                         question = clean_text(question)
                         question_tokens = word_tokenize(question)
 
+                        if len(question_tokens) > MAX_QUESTION_LENGTH or len(question_tokens) < MIN_QUESTION_LENGHT:
+                            continue
+
                         if not question_and_answer['answer'] : continue
                         answer = question_and_answer['answers']['0']
                         answer_text = answer['text']
@@ -72,8 +78,8 @@ class SquadPreprocessor:
                             print("Sentence cannot be found")
                             raise Exception()
 
-                        if len(sentence_tokens) >= MAX_SENTENCE_LENGTH or len(question) >= MAX_QUESTION_LENGTH
-
+                        if len(sentence_tokens) > MAX_SENTENCE_LENGTH or len(sentence_tokens) < MIN_SENTENCE_LENGTH:
+                            continue
                         
                         sentence_file.write(" ".join([token + u"￨" + "1" if idx in answer_sentence_span else token + u"￨" + "0" for idx, token in enumerate(sentence_tokens)]) + "\n")
                         question_file.write(" ".join([token for token in question_tokens]) + "\n")
